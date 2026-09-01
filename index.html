@@ -60,6 +60,12 @@
   #panel .item .ind { font-size:0.72rem; text-transform:uppercase; letter-spacing:0.04em; color:var(--accent); font-weight:600; }
   #panel .item .title { margin: 3px 0; }
   #panel .item .comment { color:var(--muted); font-style:italic; }
+  #panel .item a.ticket-link { display:block; text-decoration:none; color:inherit; border-radius:4px;
+                                margin: 0 -8px; padding: 2px 8px; }
+  #panel .item a.ticket-link:hover { background: var(--accent-soft); }
+  #panel .item a.ticket-link:hover .title { text-decoration: underline; }
+  #panel .item a.ticket-link .title { color: var(--accent); }
+  #panel .item .ticket-meta { color:var(--muted); font-size:0.8rem; }
   .group { border-top:1px solid var(--line); }
   .group-head { width:100%; display:flex; align-items:center; justify-content:space-between; gap:8px;
                 background:none; border:none; padding:12px 2px; text-align:left; cursor:pointer;
@@ -180,13 +186,22 @@ function openPanel(client, periodKey, kind) {
   const content = document.getElementById('panel-content');
   let html = `<h3>${escapeHtml(client)}</h3><div class="pmeta">${escapeHtml(displayLabel)}</div>`;
 
-  const renderItems = items => items.map(t => `
+  const OKDESK_BASE = 'https://bzpoffice.okdesk.ru';
+  const ticketUrl = id => OKDESK_BASE + '/issues/' + id;
+
+  const renderItems = items => items.map(t => {
+    const titleBlock = `<div class="title">${escapeHtml(t[5] || '')}${t[3] ? ' <span style="opacity:.55">↗</span>' : ''}</div>`;
+    const metaBlock = t[3] ? `<div class="ticket-meta">#${t[3]} · ${escapeHtml(t[4] || '')}${t[7] ? ' · ' + escapeHtml(t[7]) : ''}</div>` : '';
+    const body = t[3]
+      ? `<a class="ticket-link" href="${ticketUrl(t[3])}" target="_blank" rel="noopener" title="Открыть заявку №${t[3]} в Okdesk">${titleBlock}${metaBlock}</a>`
+      : `${titleBlock}${metaBlock}`;
+    return `
       <div class="item">
         <div class="ind">${escapeHtml(t[0])}</div>
-        <div class="title">${escapeHtml(t[5] || '')}</div>
-        ${t[3] ? `<div style="color:var(--muted);font-size:0.8rem">#${t[3]} · ${escapeHtml(t[4] || '')}${t[7] ? ' · ' + escapeHtml(t[7]) : ''}</div>` : ''}
+        ${body}
         ${t[6] ? `<div class="comment">${escapeHtml(t[6])}</div>` : ''}
-      </div>`).join('');
+      </div>`;
+  }).join('');
 
   const authorSummary = items => {
     const authors = [...new Set(items.map(t => t[7]).filter(Boolean))];
@@ -245,7 +260,7 @@ function filterTables() {
   });
 }
 
-document.getElementById('updated-meta').textContent = 'Обновлено: 2026-09-01 19:34 · bzpoffice.okdesk.ru';
+document.getElementById('updated-meta').textContent = 'Обновлено: 2026-09-01 20:23 · bzpoffice.okdesk.ru';
 buildWeekly();
 buildMonthly();
 </script>
